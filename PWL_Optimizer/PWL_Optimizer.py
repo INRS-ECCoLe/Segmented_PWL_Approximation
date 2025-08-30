@@ -1,8 +1,8 @@
 import math
 import numpy as np
 import matplotlib.pyplot as plt
-from pwl_approximation import pwl_approx
-import pwl_approximation
+from PWL_Approximation import pwl_approx
+import PWL_Approximation
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator
 import pandas as pd
@@ -147,12 +147,13 @@ def find_middle_bp(op_name, startpoint, endpoint):
   operand_list=list(np.arange(startpoint, endpoint, 0.02))
   for ii in operand_list:
     if op_name == "der_tanh":
-      second_der_list.append(pwl_approximation.exact_operation("2nd_der_tanh", ii))
+      second_der_list.append(PWL_Approximation.exact_operation("2nd_der_tanh", ii))
     elif op_name == "der_sigmoid":
-      second_der_list.append(pwl_approximation.exact_operation("2nd_der_sigmoid", ii))
+      second_der_list.append(PWL_Approximation.exact_operation("2nd_der_sigmoid", ii))
 
   middle_bp_point = operand_list[second_der_list.index(min(second_der_list))]
   print('-- MIDDLE BP POINT: ', middle_bp_point)
+  print('-------------------\n')
 
   '''
   fig_mre, ax_mre = plt.subplots()
@@ -206,8 +207,8 @@ def optimize_reg2_gd(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, midd
   # Gradiant descent optimization of region 2
   epsilon = 0.01
   learning_rate = 100
-  start_value = pwl_approximation.exact_operation(op_name, startpoint)
-  end_value = pwl_approximation.exact_operation(op_name, endpoint)
+  start_value = PWL_Approximation.exact_operation(op_name, startpoint)
+  end_value = PWL_Approximation.exact_operation(op_name, endpoint)
   delta_error = epsilon
   negative_gradiant = True
   bp2_len = epsilon
@@ -257,8 +258,8 @@ def optimize_reg4(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_
     
   epsilon = 0.01
   learning_rate = 2000
-  start_value = pwl_approximation.exact_operation(op_name, startpoint)
-  end_value = pwl_approximation.exact_operation(op_name, endpoint)
+  start_value = PWL_Approximation.exact_operation(op_name, startpoint)
+  end_value = PWL_Approximation.exact_operation(op_name, endpoint)
 
   bp3 = end_point-epsilon
       
@@ -350,6 +351,7 @@ def error_plot_3d(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_
   ax.set_zlim(0, error_array_np.max())
   ax.zaxis.set_major_locator(LinearLocator(10))
   ax.zaxis.set_major_formatter('{x:.04f}')
+
   plt.title(f"Region1 Bitwidth: {reg1_nbits} , Region3 Bitwidth: {reg3_nbits}", pad=0)
   if error_metric == 'mae':
     ax.set(zlabel='Mean Average Error')
@@ -367,23 +369,25 @@ def error_plot_3d(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_
 start_point = 0
 end_point = 8
 start_value = 0
-end_value = pwl_approximation.exact_operation('der_tanh', end_point)
+end_value = PWL_Approximation.exact_operation('der_tanh', end_point)
 bp1 = -1
 bp2 = 0
 obj = pwl_approx('der_tanh', 1, 5, start_value, end_value)
 obj.set_breakpoints(start_point, bp1, bp2, end_point, end_point)
 obj.create_luts()
 [mre, mae] = obj.error_analysis([0,end_point], False)
-print('\n---- ORIGINAL ----', '\n----', '  BP1:', obj.breakpoint1, '  BP2:', obj.breakpoint2, '  BP3:', obj.breakpoint3, '  EP:',  end_point,  ' ||    MRE: ', f"{mre:6f}",   '  MAE: ', f"{mae:6f}", '\r\r')
-#print('----1', obj.lut2)
+print('\n---- UNIFORM PWL ----', '\n----', '  BP1:', obj.breakpoint1, '  BP2:', obj.breakpoint2, '  BP3:', obj.breakpoint3, '  EP:',  end_point,  ' ||    MRE: ', f"{mre:6f}",   '  MAE: ', f"{mae:6f}", '\r\r')
+print('---------------------\n')
 
-epsilon = 0.3
-breakpoint3 = 2.6
-end_value = pwl_approximation.exact_operation('der_tanh', end_point)
+
+
+
+epsilon = 0.4
+breakpoint3 = 5
+end_value = PWL_Approximation.exact_operation('der_tanh', end_point)
 middle_bp = find_middle_bp('der_tanh', 0, end_point)
-obj2 = pwl_approx('der_tanh', 2, 2, start_value, end_value)
-print('pppp: bp1: ', middle_bp-epsilon, middle_bp+epsilon)
-obj2.set_breakpoints(start_point, middle_bp-epsilon, middle_bp+epsilon, breakpoint3, end_point)
+obj2 = pwl_approx('der_tanh', 2, 3, start_value, end_value)
+obj2.set_breakpoints(start_point, middle_bp-0.2, middle_bp+0.2, breakpoint3, end_point)
 obj2.create_luts()
 [reg1_error, reg2_error, reg3_error, reg4_error, total_mre, total_mae] = obj2.detailed_error_analysis()
 print('Reg1 MRE = '  , f"{reg1_error[0]:.6f}", ' Reg1 MAE = ', f"{reg1_error[1]:.6f}", 

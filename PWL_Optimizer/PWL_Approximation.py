@@ -95,6 +95,7 @@ class pwl_approx:
     
   # --------------------------------------------------- #
   def error_analysis(self, range, plot_error=False):
+    plot_with_value_curves = False
     mre = 0
     mae = 0
     N = 0
@@ -118,14 +119,34 @@ class pwl_approx:
       fig, ax = plt.subplots()
       ax.axvline(color="grey")
       ax.plot(ind, error_array, linewidth=2, label="Absolute Error")
-      #ax.plot(ind, exact_result, 'r', linewidth=2, label="Exact")
-      #ax.plot(ind, approx_result, 'b', linewidth=2, label="Approximate result")
+      if plot_with_value_curves == True:
+        ax.plot(ind, exact_result, 'g', linewidth=2.5, label="Exact")
+        ax.plot(ind, approx_result, 'red', linewidth=1.5, linestyle='dashed', label="Approximate result")
+        ylimit = max(exact_result)
+      else:
+        ylimit = 0.05
+      plt.text(self.breakpoint1/2, 0.98*ylimit, 'Region 1', rotation=90, fontsize=10, color='gray', ha='center', va='top' )
       ax.axvspan(0, self.breakpoint1, alpha=0.2)
+      plt.text((self.breakpoint1+self.breakpoint2)/2, 0.98*ylimit, 'Region 2', rotation=90, fontsize=10, color='gray', ha='center', va='top' )
+      plt.text(self.breakpoint1, 1.04*ylimit, 'BP1', fontsize=9, color='black', ha='center', va='top' )
       ax.axvspan(self.breakpoint1, self.breakpoint2, color='yellow', alpha=0.2)
+      plt.text((self.breakpoint2+self.breakpoint3)/2, 0.98*ylimit, 'Region 3', rotation=90, fontsize=10, color='gray', ha='center', va='top' )
+      plt.text(self.breakpoint2, 1.04*ylimit, 'BP2', fontsize=9, color='black', ha='center', va='top' )
       ax.axvspan(self.breakpoint2, self.breakpoint3, color='red', alpha=0.2)
+      plt.text((self.breakpoint3+self.endpoint)/2, 0.98*ylimit, 'Region 4', rotation=90, fontsize=10, color='gray', ha='center', va='top' )
+      plt.text(self.breakpoint3, 1.04*ylimit, 'BP3', fontsize=9, color='black', ha='center', va='top' )
+      ax.axvspan(self.breakpoint3, self.endpoint, color='gray', alpha=0.1)
       ax.set(xlim=(0, range[1]), xlabel="Endpoint")
-      ax.set(ylim=(0, 0.2), ylabel=r"Absolute Error")#"Mean Absolute Error (x1000)")
-      ax.legend(fontsize=14)
+      ax.set(ylim=(0, ylimit), ylabel=r"Absolute Error")#"Mean Absolute Error (x1000)")
+      if plot_with_value_curves == True:
+        # reordering the labels
+        handles, labels = plt.gca().get_legend_handles_labels()
+        # specify order
+        order = [1, 2, 0]
+        # pass handle & labels lists along with order as below
+        plt.legend([handles[i] for i in order], [labels[i] for i in order], fontsize=12)
+      else:
+        ax.legend(fontsize=12)
       plt.grid(True)
       plt.show()
 
