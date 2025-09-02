@@ -128,22 +128,22 @@ class pwl_approx:
       plt.text(self.breakpoint1/2, 0.98*ylimit, 'Region 1', rotation=90, fontsize=10, color='gray', ha='center', va='top' )
       ax.axvspan(0, self.breakpoint1, alpha=0.2)
       plt.text((self.breakpoint1+self.breakpoint2)/2, 0.98*ylimit, 'Region 2', rotation=90, fontsize=10, color='gray', ha='center', va='top' )
-      plt.text(self.breakpoint1, 1.04*ylimit, 'BP1', fontsize=9, color='black', ha='center', va='top' )
+      #plt.text(self.breakpoint1, 1.04*ylimit, 'BP1', fontsize=9, color='black', ha='center', va='top' )
       ax.axvspan(self.breakpoint1, self.breakpoint2, color='yellow', alpha=0.2)
       plt.text((self.breakpoint2+self.breakpoint3)/2, 0.98*ylimit, 'Region 3', rotation=90, fontsize=10, color='gray', ha='center', va='top' )
-      plt.text(self.breakpoint2, 1.04*ylimit, 'BP2', fontsize=9, color='black', ha='center', va='top' )
+      #plt.text(self.breakpoint2, 1.04*ylimit, 'BP2', fontsize=9, color='black', ha='center', va='top' )
       ax.axvspan(self.breakpoint2, self.breakpoint3, color='red', alpha=0.2)
       plt.text((self.breakpoint3+self.endpoint)/2, 0.98*ylimit, 'Region 4', rotation=90, fontsize=10, color='gray', ha='center', va='top' )
-      plt.text(self.breakpoint3, 1.04*ylimit, 'BP3', fontsize=9, color='black', ha='center', va='top' )
+      #plt.text(self.breakpoint3, 1.04*ylimit, 'BP3', fontsize=9, color='black', ha='center', va='top' )
       ax.axvspan(self.breakpoint3, self.endpoint, color='gray', alpha=0.1)
       ax.set(xlim=(0, range[1]), xlabel="Endpoint")
       ax.set(ylim=(0, ylimit), ylabel=r"Absolute Error")#"Mean Absolute Error (x1000)")
+      plt.title(f"BP1={self.breakpoint1:.2f} , BP2={self.breakpoint2:.2f} , BP3={self.breakpoint3:.2f}", pad=1)
       if plot_with_value_curves == True:
         # reordering the labels
         handles, labels = plt.gca().get_legend_handles_labels()
         # specify order
         order = [1, 2, 0]
-        # pass handle & labels lists along with order as below
         plt.legend([handles[i] for i in order], [labels[i] for i in order], fontsize=12)
       else:
         ax.legend(fontsize=12)
@@ -225,5 +225,5 @@ def exact_operation(op_name, operand):
       case "2nd_der_tanh":
         return -2 * math.tanh(operand) * (1 - math.tanh(operand)**2)
       case "2nd_der_sigmoid":
-          return 0 # TO FIX
+          return 1/(1 + np.exp(-operand)) * (1- 1/(1 + np.exp(-operand))) * (1 - 2/(1 + np.exp(-operand))) # TO FIX
     

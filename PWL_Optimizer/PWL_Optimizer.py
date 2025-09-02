@@ -10,11 +10,91 @@ import csv
 
 
 
-
-
 # --------------------------------------------------- #
 def quantize(input, n_bits):
   return round(input*pow(2,n_bits))/pow(2,n_bits)
+
+# --------------------------------------------------- #
+def draw_functions():
+    
+    xlim_min = -8
+    xlim_max = 8
+    x = np.linspace(xlim_min, xlim_max, 200)
+
+    # Drawing derivative functions
+    func = []
+    for jj in range(len(x)):
+      func.append(PWL_Approximation.exact_operation('der_tanh', x[jj])) 
+    
+    fig, ax = plt.subplots(figsize=(7, 4))
+    ax.axvline(color="grey")
+    #ax.axline((0, 0.5), slope=0.25, color="black", linestyle=(0, (5, 5)))
+    ax.plot(x, func, linewidth=2, label=r"$f(x)' = \frac{d}{dx} tanh(x)$")
+    ax.set_xlabel('x', fontsize=14, fontweight='bold', fontname='Arial')
+    ax.set_ylabel(r"$f(x)'$", fontsize=12, fontweight='bold', fontname='Arial')
+    ax.set_xlim(xlim_min, xlim_max)
+    ax.set_ylim(0, 1)
+    ax.grid()
+    
+    # sigmoid
+    func = []
+    for jj in range(len(x)):
+      func.append(PWL_Approximation.exact_operation('der_sigmoid', x[jj])) 
+    ax.plot(x, func, 'r', linewidth=2.5, label=r"$f(x)' = \frac{d}{dx} sigmoid(x)$")
+    ax.legend(fontsize=12)
+
+    '''
+    ax2.axvline(color="grey")
+    #ax.axline((0, 0.5), slope=0.25, color="black", linestyle=(0, (5, 5)))
+    ax2.plot(x, func, linewidth=2)
+    ax2.set_xlabel('x', fontsize=14, fontweight='bold', fontname='Arial')
+    ax2.set_ylabel(r"$\frac{d}{dx} sigmoid(x)$", fontsize=12, fontweight='bold', fontname='Arial')
+    ax2.set_xlim(xlim_min, xlim_max)
+    ax2.set_ylim(0, 1)
+    ax2.grid()
+    '''
+    # Drawing second derivative functions
+    xlim_min = 0
+    xlim_max = 8
+    x = np.linspace(xlim_min, xlim_max, 100)
+    func = []
+    for jj in range(len(x)):
+      func.append(PWL_Approximation.exact_operation('2nd_der_tanh', x[jj])) 
+    
+    min_y = np.min(func)
+    min_x = x[np.argmin(func)]
+    fig, ax = plt.subplots(figsize=(7, 4))
+    ax.axvline(color="grey")
+    #ax.axline((0, 0.5), slope=0.25, color="black", linestyle=(0, (5, 5)))
+    ax.plot(x, func, linewidth=2, label=r"$f(x){''} = \frac{d^2}{dx^2} tanh(x)$")
+    ax.set_xlabel('x', fontsize=14, fontweight='bold', fontname='Arial')
+    ax.set_ylabel(r"$f(x){''} $", fontsize=12, fontweight='bold', fontname='Arial')
+    ax.set_xlim(xlim_min, xlim_max)
+    ax.set_ylim(-0.8, 0)
+    plt.annotate(f'Min: ({min_x:.2f}, {min_y:.2f})',
+                 xy=(min_x, min_y),
+                 xytext=(min_x + 0.6, min_y + 0.01), # Adjust text position
+                 arrowprops=dict(facecolor='navy', shrink=0.05, alpha=0.4))
+    ax.grid()
+    
+    # sigmoid
+    func = []
+    for jj in range(len(x)):
+      func.append(PWL_Approximation.exact_operation('2nd_der_sigmoid', x[jj])) 
+    min_y = np.min(func)
+    min_x = x[np.argmin(func)]
+    #plt.axvline(x=min_x, linestyle='--', color='gray', label='Minimum X')
+    plt.annotate(f'Min: ({min_x:.2f}, {min_y:.2f})',
+                 xy=(min_x, min_y),
+                 xytext=(min_x - 0.01, min_y - 0.1), # Adjust text position
+                 arrowprops=dict(facecolor='red', shrink=0.05, alpha=0.4))
+
+
+    ax.plot(x, func, 'r', linewidth=2.5, label=r"$f(x){''} = \frac{d^2}{dx^2} sigmoid(x)$")
+    ax.legend(fontsize=12)
+
+    plt.show()
+    
 
 # --------------------------------------------------- #
 # find optimal endpoint
@@ -91,8 +171,6 @@ def optimize_breakpoints(op_name, addr_nbits, startpoint, endpoint, input_range)
   op=0.1
   del pwl_obj
   
-  print('xxxxxxxxxxxx')
-
   mae_array=[]
   mre_array=[]
   pwl_obj = pwl_approx(op_name, addr_nbits-1, addr_nbits-1, 0, 0)
@@ -183,12 +261,13 @@ def optimize_reg2_exhaustive(op_name, reg1_nbits, reg3_nbits, startpoint, endpoi
   epsilon = 0.01
   reg2_len_div2 = epsilon
   obj = pwl_approx(op_name, reg1_nbits, reg3_nbits, start_value, end_value)
-  obj.set_breakpoints(start_point, middle_bp-reg2_len_div2, middle_bp+reg2_len_div2, breakpoint3, end_point)
+  obj.set_breakpoints(start_point, middle_bp, middle_bp, breakpoint3, end_point)
   obj.create_luts()
   error_result_vec = obj.error_analysis([startpoint, endpoint], False)
   new_error = error_select(error_result_vec, error_metric)
   del obj
 
+  
   last_error = new_error + epsilon
   while new_error < last_error:
     last_error = new_error
@@ -201,6 +280,39 @@ def optimize_reg2_exhaustive(op_name, reg1_nbits, reg3_nbits, startpoint, endpoi
     del obj
 
   return [error_result_vec, last_error]
+  
+  
+  '''
+  bp1 = middle_bp
+  bp2 = middle_bp
+
+  last_error = new_error + epsilon
+  while new_error < last_error:
+    last_error = new_error
+    obj = pwl_approx(op_name, reg1_nbits, reg3_nbits, start_value, end_value)
+    obj.set_breakpoints(start_point, bp1, bp2+epsilon, breakpoint3, end_point)
+    obj.create_luts()
+    error_result_vec = obj.error_analysis([startpoint, endpoint], False)
+    right_expand_error = error_select(error_result_vec, error_metric)
+    del obj
+    obj = pwl_approx(op_name, reg1_nbits, reg3_nbits, start_value, end_value)
+    obj.set_breakpoints(start_point, bp1-epsilon, bp2, breakpoint3, end_point)
+    obj.create_luts()
+    error_result_vec = obj.error_analysis([startpoint, endpoint], False)
+    left_expand_error = error_select(error_result_vec, error_metric)  
+    del obj
+
+    if left_expand_error > right_expand_error: # it's better to expand region2 to the right
+      bp2 = bp2 + epsilon
+    else:
+      bp1 = bp1 - epsilon
+    new_error = min(left_expand_error, right_expand_error)
+    print ('kkkkkk     bp1:', f"{bp1:2f}", '     bp2:', f"{bp2:2f}", '      breakpoint3: ', f"{breakpoint3:6f}",  '        left_expand_error: ', f"{left_expand_error:6f}", '        right_expand_error', f"{right_expand_error:6f}",)
+  print ('\n')
+
+  return [[bp1,bp2], last_error]
+  '''
+  
 
 # --------------------------------------------------- #
 def optimize_reg2_gd(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_bp, breakpoint3, start_value, end_value, error_metric):
@@ -212,8 +324,7 @@ def optimize_reg2_gd(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, midd
   delta_error = epsilon
   negative_gradiant = True
   bp2_len = epsilon
-  while abs(delta_error) > 0.000001:
-
+  while abs(delta_error) > 0.0000005:
     obj = pwl_approx(op_name, reg1_nbits, reg3_nbits, start_value, end_value)
     obj.set_breakpoints(start_point, middle_bp-bp2_len, middle_bp+bp2_len, breakpoint3, end_point)
     obj.create_luts()
@@ -257,7 +368,7 @@ def optimize_reg2_gd(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, midd
 def optimize_reg4(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_bp, error_metric):
     
   epsilon = 0.01
-  learning_rate = 2000
+  learning_rate = 1000
   start_value = PWL_Approximation.exact_operation(op_name, startpoint)
   end_value = PWL_Approximation.exact_operation(op_name, endpoint)
 
@@ -265,7 +376,7 @@ def optimize_reg4(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_
       
   delta_error = epsilon
   negative_gradiant = True
-  while abs(delta_error) > 0.0000001:
+  while abs(delta_error) > 0.0000002:
     [reg2_len_div2, error_d1] = optimize_reg2_exhaustive(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_bp, bp3, start_value, end_value, error_metric)
     bp3 = bp3 - epsilon
     [reg2_len_div2, error_d2] = optimize_reg2_exhaustive(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_bp, bp3, start_value, end_value, error_metric)
@@ -336,6 +447,7 @@ def error_plot_3d(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_
     )
   '''
 
+  
   # Drawing surface plot
   error_array_np = np.array(error_array)
   print('NNNNNNNNNNN MRE   ',error_array_np.min())
@@ -365,6 +477,10 @@ def error_plot_3d(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_
   plt.show()
 
 # --------------------------------------------------- #
+
+draw_functions()
+
+
 #pwl_linear_opt("sigmoid", 1, 10)
 start_point = 0
 end_point = 8
@@ -399,7 +515,11 @@ print('\n----', '  BP1:', f"{obj2.breakpoint1:.3f}", '  BP2:', f"{obj2.breakpoin
 
 print('\n\n-------- Calling optimize_reg2_4')
 
+
+# ---
 #optimize_reg4(op_name='der_tanh', reg1_nbits=3, reg3_nbits=4, startpoint=start_point, endpoint=end_point, middle_bp=middle_bp, error_metric='mae')
+
+# ----
 #middle_bp=4
 #error_plot_3d(op_name='der_tanh', reg1_nbits=3, reg3_nbits=4, startpoint=start_point, endpoint=end_point, middle_bp=middle_bp, error_metric='mre', reg2_len_range = [0, middle_bp], reg4_len_range= [0,5.2])#end_point-middle_bp])
 
