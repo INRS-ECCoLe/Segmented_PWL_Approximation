@@ -155,9 +155,9 @@ class pwl_approx:
   # --------------------------------------------------- #
   def detailed_error_analysis(self):
     N = 0
-    resolution = 1/pow(2, 17)
+    resolution = 1/pow(2, 16)
     reg1_error = [0, 0]
-    print('-- SP: ', self.startpoint, ' BP1: ', self.breakpoint1, ' BP2: ', self.breakpoint2, ' BP3: ', self.breakpoint3 , ' EP: ', self.endpoint)
+    print('    * BP1: ', self.breakpoint1, ' BP2: ', self.breakpoint2, ' BP3: ', self.breakpoint3 , ' EP: ', self.endpoint)
     # Region 1: from Startpoint to BP1
     for operand in np.arange(self.startpoint, self.breakpoint1, resolution):
       exact_result = exact_operation(self.op_name, operand)
@@ -165,8 +165,12 @@ class pwl_approx:
       reg1_error[0] = reg1_error[0] + abs((approx_result - exact_result) / exact_result) # MRE
       reg1_error[1] = reg1_error[1] + abs(approx_result - exact_result) # MAE
       N = N + 1
-    reg1_error[0] = reg1_error[0] / N
-    reg1_error[1] = reg1_error[1] / N
+    if (N == 0):
+      reg1_error[0] = 0
+      reg1_error[1] = 0
+    else:
+      reg1_error[0] = reg1_error[0] / N
+      reg1_error[1] = reg1_error[1] / N
 
     # Region 2: from BP1 to BP2
     N = 0
@@ -177,8 +181,12 @@ class pwl_approx:
       reg2_error[0] = reg2_error[0] + abs((approx_result - exact_result) / exact_result) # MRE
       reg2_error[1] = reg2_error[1] + abs(approx_result - exact_result) # MAE
       N = N + 1
-    reg2_error[0] = reg2_error[0] / N
-    reg2_error[1] = reg2_error[1] / N
+    if (N == 0):
+      reg2_error[0] = 0
+      reg2_error[1] = 0
+    else:
+      reg2_error[0] = reg2_error[0] / N
+      reg2_error[1] = reg2_error[1] / N
 
     # Region 3: from BP2 to BP3
     N = 0
@@ -189,8 +197,12 @@ class pwl_approx:
       reg3_error[0] = reg3_error[0] + abs((approx_result - exact_result) / exact_result) # MRE
       reg3_error[1] = reg3_error[1] + abs(approx_result - exact_result) # MAE
       N = N + 1
-    reg3_error[0] = reg3_error[0] / N
-    reg3_error[1] = reg3_error[1] / N
+    if (N == 0):
+      reg3_error[0] = 0
+      reg3_error[1] = 0
+    else:
+      reg3_error[0] = reg3_error[0] / N
+      reg3_error[1] = reg3_error[1] / N
 
     # Region 4: from BP3 to Endpoint
     N = 0
@@ -201,8 +213,12 @@ class pwl_approx:
       reg4_error[0] = reg4_error[0] + abs((approx_result - exact_result) / exact_result) # MRE
       reg4_error[1] = reg4_error[1] + abs(approx_result - exact_result) # MAE
       N = N + 1
-    reg4_error[0] = reg4_error[0] / N
-    reg4_error[1] = reg4_error[1] / N
+    if (N == 0):
+      reg4_error[0] = 0
+      reg4_error[1] = 0
+    else:
+      reg4_error[0] = reg4_error[0] / N
+      reg4_error[1] = reg4_error[1] / N
 
     total_mre = (reg1_error[0] + reg2_error[0] + reg3_error[0] + reg4_error[0])/4
     total_mae = (reg1_error[1] + reg2_error[1] + reg3_error[1] + reg4_error[1])/4

@@ -458,54 +458,104 @@ def error_plot_3d(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_
 
   plt.show()
 
+# --------------------------------------------------- # pwl_optimizer
+def pwl_optimizer(op_name, start_value, end_value, error_metric, target_error_value):
+  # ---- Uniform PWL test
+  pwl_segment_id_width = 0    # number of segments in uniform PWL is 2^pwl_segment_id_width
+  print('-----------\nStart uniform PWL test ...')
+  current_error = 1
+  while(current_error > target_error_value):
+    pwl_segment_id_width = pwl_segment_id_width + 1
+    print('  Number of segments : ', pow(2,pwl_segment_id_width))
+    bp1 = -1
+    bp2 = 0
+    obj = pwl_approx(op_name, 1, pwl_segment_id_width, start_value, end_value)
+    obj.set_breakpoints(start_point, bp1, bp2, end_point, end_point)
+    obj.create_luts()
+    [mse, mae] = obj.error_analysis([0,end_point], False)
+    print('  MRE: ', f"{mse:6f}",   '  MAE: ', f"{mae:6f}", '\r\r')
+    if (error_metric == 'mae'):
+      current_error = mae
+    elif (error_metric == 'mse'):
+      current_error = mse
+    else:
+      print('*** ERROR: Undefined Error Metric: "', error_metric)
+      exit
+    del obj
+  print('  Uniform PWL number of segments: ', pow(2, pwl_segment_id_width), '      ', error_metric, ': ', current_error)
+  print('----------\n')
+
+  # ---- Break point optimization
+  print('----------\nStart breakpoint optimization ...')
+
+  reg1_nbits = 0  # number of PWL segments in Region 1 = 2 ** reg1_nbits
+  reg3_nbits = 1  # number of PWL segments in Region 3 = 2 ** reg3_nbits
+  end_value = PWL_Approximation.exact_operation(op_name, end_point)
+  middle_bp = find_middle_bp(op_name, 0, end_point)
+  current_error = 1
+  reg1_error = [1,1]
+  reg3_error = [0,0]
+
+  while(current_error > target_error_value):
+    if (error_metric == 'mae'):
+      if (reg1_error[1] > reg3_error[1]):
+        reg1_nbits = reg1_nbits + 1
+      else:
+        reg3_nbits = reg3_nbits + 1
+    elif (error_metric == 'mse'):
+      if (reg1_error[0] > reg3_error[0]):
+        reg1_nbits = reg1_nbits + 1
+      else:
+        reg3_nbits = reg3_nbits + 1
+    else:
+      print('*** ERROR: Undefined Error Metric: "', error_metric)
+      exit
+
+    print('\n\n   Trying # PWL1 segments = ', pow(2,reg1_nbits), '     # PWL3 segments = ', pow(2,reg3_nbits))
+    print('\n\n   Calling optimize_BPs ...')
+
+    [opt_bp1, opt_bp2, opt_bp3, error_result] = optimize_BPs(op_name='der_tanh', reg1_nbits=reg1_nbits, reg3_nbits=reg3_nbits, 
+                                                          startpoint=start_point, endpoint=end_point, middle_bp=middle_bp, error_metric=error_metric)
+
+    print('   * Region1 PWL Segments', pow(2,reg1_nbits), '  Region3 PWL Segments', pow(2,reg3_nbits), 
+          'Optimal BP1: ', f"{opt_bp1:.6f}", '    Optimal BP2: ', f"{opt_bp2:.6f}", '    Optimal BP3: ', f"{opt_bp3:.6f}", '       ', error_metric, ' : ', f"{error_result:.6f}")
+    current_error = error_result
+
+    obj2 = pwl_approx(op_name, reg1_nbits, reg3_nbits, start_value, end_value)
+    obj2.set_breakpoints(start_point, opt_bp1, opt_bp2, opt_bp3, end_point)
+    obj2.create_luts()
+    [reg1_error, reg2_error, reg3_error, reg4_error, total_mre, total_mae] = obj2.detailed_error_analysis()
+    print('      Reg1 MSE = '  , f"{reg1_error[0]:.6f}", ' Reg1 MAE = ', f"{reg1_error[1]:.6f}", 
+          '\n      Reg2 MSE = ', f"{reg2_error[0]:.6f}", ' Reg2 MAE = ', f"{reg2_error[1]:.6f}", 
+          '\n      Reg3 MSE = ', f"{reg3_error[0]:.6f}", ' Reg3 MAE = ', f"{reg3_error[1]:.6f}", 
+          '\n      Reg4 MSE = ', f"{reg3_error[0]:.6f}", ' Reg4 MAE = ', f"{reg4_error[1]:.6f}" )
+    del obj2
+    
+    print('----------\n')
+
 # --------------------------------------------------- #
 
-
+# --------------------------------------------------- # Main
 # ---- Draw the two derivative functions
 print('---------------------\n Start running draw_functions to draw first and second derivatives plots ...')
 draw_functions()
 print('---------------------\n')
 
-
 # ---- Global initializations
 print('---------------------\nStart global parameter initialization ...')
 op_name = 'der_tanh'
+error_metric='mae'
 start_point = 0
 end_point = 10
 start_value = 0
+target_error = 0.0001
 end_value = PWL_Approximation.exact_operation(op_name, end_point)
 print('Function: ', op_name, '\nstart_point: ', start_point, '\nend_point: ', end_point)
 print('---------------------\n')
 
-# ---- Uniform PWL test
-pwl_segment_id_width = 6    # number of segments in uniform PWL is 2^pwl_segment_id_width
-print('---------------------\nStart uniform PWL test ...')
-print('Number of segments : ', pow(2,pwl_segment_id_width))
-bp1 = -1
-bp2 = 0
-obj = pwl_approx(op_name, 1, pwl_segment_id_width, start_value, end_value)
-obj.set_breakpoints(start_point, bp1, bp2, end_point, end_point)
-obj.create_luts()
-[mre, mae] = obj.error_analysis([0,end_point], False)
-print('MRE: ', f"{mre:6f}",   '  MAE: ', f"{mae:6f}", '\r\r')
-print('---------------------\n')
-
-
-# ---- Break point optimization
-print('---------------------\nStart breakpoint optimization ...')
-error_metric='mae'
-#epsilon = 0.4
-#breakpoint3 = 5
-end_value = PWL_Approximation.exact_operation(op_name, end_point)
-middle_bp = find_middle_bp(op_name, 0, end_point)
-
-print('\n\n--- Calling optimize_BPs ...')
-
-[opt_bp1, opt_bp2, opt_bp3, error_result] = optimize_BPs(op_name='der_tanh', reg1_nbits=3, reg3_nbits=5, 
-                                                         startpoint=start_point, endpoint=end_point, middle_bp=middle_bp, error_metric=error_metric)
-
-print('Optimal BP1: ', opt_bp1, '    Optimal BP2: ', opt_bp2, '    Optimal BP3: ', opt_bp3, '       ', op_name, ' : ', error_result)
-print('---------------------\n')
+# ---- PWL Optimizer
+print('---------------------\nOptimize uniform PWl and segmented PWL to reach ', error_metric, ' of ', target_error, ' ...')
+pwl_optimizer(op_name=op_name, start_value=start_value, end_value=end_value, error_metric=error_metric, target_error_value=target_error)
 
 # ---------------------------------------
 breakpoint3 = 5
@@ -513,10 +563,10 @@ obj2 = pwl_approx(op_name, 2, 3, start_value, end_value)
 obj2.set_breakpoints(start_point, middle_bp-0.2, middle_bp+0.2, breakpoint3, end_point)
 obj2.create_luts()
 [reg1_error, reg2_error, reg3_error, reg4_error, total_mre, total_mae] = obj2.detailed_error_analysis()
-print('Reg1 MRE = '  , f"{reg1_error[0]:.6f}", ' Reg1 MAE = ', f"{reg1_error[1]:.6f}", 
-      '\nReg2 MRE = ', f"{reg2_error[0]:.6f}", ' Reg2 MAE = ', f"{reg2_error[1]:.6f}", 
-      '\nReg3 MRE = ', f"{reg3_error[0]:.6f}", ' Reg3 MAE = ', f"{reg3_error[1]:.6f}", 
-      '\nReg4 MRE = ', f"{reg3_error[0]:.6f}", ' Reg4 MAE = ', f"{reg4_error[1]:.6f}" )
+print('Reg1 MSE = '  , f"{reg1_error[0]:.6f}", ' Reg1 MAE = ', f"{reg1_error[1]:.6f}", 
+      '\nReg2 MSE = ', f"{reg2_error[0]:.6f}", ' Reg2 MAE = ', f"{reg2_error[1]:.6f}", 
+      '\nReg3 MSE = ', f"{reg3_error[0]:.6f}", ' Reg3 MAE = ', f"{reg3_error[1]:.6f}", 
+      '\nReg4 MSE = ', f"{reg3_error[0]:.6f}", ' Reg4 MAE = ', f"{reg4_error[1]:.6f}" )
 [mre, mae] = obj2.error_analysis([0,end_point], True)
 print('\n----', '  BP1:', f"{obj2.breakpoint1:.3f}", '  BP2:', f"{obj2.breakpoint2:.3f}", '  BP3:', f"{obj2.breakpoint3:.3f}",  '  EP:',  end_point, ' ||    MRE: ', f"{mre:.6f}",   '  MAE: ', f"{mae:.6f}", '\r\r')
 #
@@ -524,41 +574,5 @@ print('\n----', '  BP1:', f"{obj2.breakpoint1:.3f}", '  BP2:', f"{obj2.breakpoin
 #middle_bp=4
 #error_plot_3d(op_name='der_tanh', reg1_nbits=3, reg3_nbits=4, startpoint=start_point, endpoint=end_point, middle_bp=middle_bp, error_metric='mre', reg2_len_range = [0, middle_bp], reg4_len_range= [0,5.2])#end_point-middle_bp])
 
-'''
-obj = pwl_approx('der_tanh', 2, 2, start_value, end_value)
-obj.set_breakpoints(1.2857, 1.7142, start_point, end_point)
-obj.create_luts()
-[mre, mae] = error_analysis(obj, [0,10])
-print('----2', '  end_point:', end_point,   '     MRE: ', mre,   '  MAE: ', mae, '\r\r')
-print('----2', obj.lut1, obj.lut2)
-
-print('----', obj.approx_result(8))
-print('+++++', obj.operation(8))
-
-#[mre, mae] = error_analysis(obj, [0,10])
-#print('RRRR  ', 'BP1: ', bp1, '   BP2: ', bp2, '   end_point:', end_point,   '     MRE: ', mre,   '  MAE: ', mae, '\r\r')
-
-'''
 print('------------------------------------------------')
 
-
-'''
-# Find the optimal end value
-end_value = 0
-bp1 = -1
-bp2 = 0
-for end_point in np.arange(3, 10, 1):
-  end_point = int(end_point*10)/10
-  obj.set_breakpoints(bp1, bp2, start_point, end_point)
-  [mre, mae] = error_analysis(obj, [0,10])
-  print('----', '  end_point:', end_point,   '     MRE: ', mre,   '  MAE: ', mae, '\r\r')
-  print('----', obj.lut2)
-'''
-
-print('------------------------------------------------')
-
-
-#best_endpoints = endpoint_analysis(op_name='der_tanh', min_nbits=3, max_nbits=8, min_endpoint=2, max_endpoint=10, input_range=[0,10])
-#print ('Best Endpointd: ', best_endpoints)
-
-#optimize_breakpoints(op_name='der_tanh', addr_nbits=5, startpoint=0, endpoint=3, input_range=[0,4])
