@@ -95,8 +95,8 @@ class pwl_approx:
     
   # --------------------------------------------------- #
   def error_analysis(self, range, plot_error=False):
-    plot_with_value_curves = False
-    mre = 0
+    plot_with_value_curves = True
+    mse = 0
     mae = 0
     N = 0
     error_array = []
@@ -104,53 +104,56 @@ class pwl_approx:
     approx_result = []
     ind = []
     for operand in np.arange(range[0], range[1], 1/pow(2, 17)):
-      #print('kk  ', operand, '    ', abs((object.approx_result(operand) - object.operation(operand))), '      mre:', mre)
+      #print('kk  ', operand, '    ', abs((object.approx_result(operand) - object.operation(operand))), '      mse:', mse)
       exact_result.append(exact_operation(self.op_name, operand))
       approx_result.append(self.approx_operation(operand))
       error_array.append(abs(approx_result[-1] - exact_result[-1]))
       ind.append(operand)
-      mre = mre + pow((approx_result[-1] - exact_result[-1]),2)
+      mse = mse + pow((approx_result[-1] - exact_result[-1]),2)
       mae = mae + abs(approx_result[-1] - exact_result[-1])
       N = N+1
-    mre = mre / N
+    mse = mse / N
     mae = mae / N
 
     if plot_error == True:
-      fig, ax = plt.subplots()
+      fig, ax = plt.subplots(figsize=(6, 5))
       ax.axvline(color="grey")
       ax.plot(ind, error_array, linewidth=2, label="Absolute Error")
       if plot_with_value_curves == True:
-        ax.plot(ind, exact_result, 'g', linewidth=2.5, label="Exact")
-        ax.plot(ind, approx_result, 'red', linewidth=1.5, linestyle='dashed', label="Approximate result")
+        ax.plot(ind, exact_result, 'g', linewidth=2.5, label="Exact $tanh(x)$")
+        ax.plot(ind, approx_result, 'red', linewidth=1.5, linestyle='dashed', label="Approximate $tanh(x)$")
         ylimit = max(exact_result)
       else:
         ylimit = 0.05
-      plt.text(self.breakpoint1/2, 0.98*ylimit, 'Region 1', rotation=90, fontsize=10, color='gray', ha='center', va='top' )
+      plt.text(self.breakpoint1/2, 0.98*ylimit, 'Region 1', rotation=90, fontsize=12, color='gray', ha='center', va='top' )
       ax.axvspan(0, self.breakpoint1, alpha=0.2)
-      plt.text((self.breakpoint1+self.breakpoint2)/2, 0.98*ylimit, 'Region 2', rotation=90, fontsize=10, color='gray', ha='center', va='top' )
+      plt.text((self.breakpoint1+self.breakpoint2)/2, 0.98*ylimit, 'Region 2', rotation=90, fontsize=12, color='gray', ha='center', va='top' )
       #plt.text(self.breakpoint1, 1.04*ylimit, 'BP1', fontsize=9, color='black', ha='center', va='top' )
       ax.axvspan(self.breakpoint1, self.breakpoint2, color='yellow', alpha=0.2)
-      plt.text((self.breakpoint2+self.breakpoint3)/2, 0.98*ylimit, 'Region 3', rotation=90, fontsize=10, color='gray', ha='center', va='top' )
+      plt.text((self.breakpoint2+self.breakpoint3)/2, 0.98*ylimit, 'Region 3', rotation=90, fontsize=12, color='gray', ha='center', va='top' )
       #plt.text(self.breakpoint2, 1.04*ylimit, 'BP2', fontsize=9, color='black', ha='center', va='top' )
       ax.axvspan(self.breakpoint2, self.breakpoint3, color='red', alpha=0.2)
-      plt.text((self.breakpoint3+self.endpoint)/2, 0.98*ylimit, 'Region 4', rotation=90, fontsize=10, color='gray', ha='center', va='top' )
+      plt.text((self.breakpoint3+self.endpoint)/2, 0.98*ylimit, 'Region 4', rotation=90, fontsize=12, color='gray', ha='center', va='top' )
       #plt.text(self.breakpoint3, 1.04*ylimit, 'BP3', fontsize=9, color='black', ha='center', va='top' )
       ax.axvspan(self.breakpoint3, self.endpoint, color='gray', alpha=0.1)
-      ax.set(xlim=(0, range[1]), xlabel="Endpoint")
-      ax.set(ylim=(0, ylimit), ylabel=r"Absolute Error")#"Mean Absolute Error (x1000)")
-      plt.title(f"BP1={self.breakpoint1:.2f} , BP2={self.breakpoint2:.2f} , BP3={self.breakpoint3:.2f}", pad=1)
+      ax.tick_params(axis='both', labelsize=12)
+      ax.set(xlim=(0, range[1]), ylim=(0, ylimit))
+      ax.set_xlabel(r'Input, x', fontsize=14)
+      ax.set_ylabel(r"$tanh'(x)$", fontsize=14)
+      #ax.set(ylim=(0, ylimit), ylabel=r"Absolute Error")#"Mean Absolute Error (x1000)")
+      plt.title(f"BP1={self.breakpoint1:.2f} , BP2={self.breakpoint2:.2f} , BP3={self.breakpoint3:.2f}", pad=1, fontsize=14)
       if plot_with_value_curves == True:
         # reordering the labels
         handles, labels = plt.gca().get_legend_handles_labels()
         # specify order
         order = [1, 2, 0]
-        plt.legend([handles[i] for i in order], [labels[i] for i in order], fontsize=12)
+        plt.legend([handles[i] for i in order], [labels[i] for i in order], fontsize=12, loc='right')
       else:
         ax.legend(fontsize=12)
       plt.grid(True)
       plt.show()
 
-    return [mre, mae]
+    return [mse, mae]
 
   # --------------------------------------------------- #
   def detailed_error_analysis(self):
@@ -162,7 +165,7 @@ class pwl_approx:
     for operand in np.arange(self.startpoint, self.breakpoint1, resolution):
       exact_result = exact_operation(self.op_name, operand)
       approx_result = self.approx_operation(operand)
-      reg1_error[0] = reg1_error[0] + abs((approx_result - exact_result) / exact_result) # MRE
+      reg1_error[0] = reg1_error[0] + pow((approx_result - exact_result) , 2) # MSE
       reg1_error[1] = reg1_error[1] + abs(approx_result - exact_result) # MAE
       N = N + 1
     if (N == 0):
@@ -178,7 +181,7 @@ class pwl_approx:
     for operand in np.arange(self.breakpoint1+resolution, self.breakpoint2, resolution):
       exact_result = exact_operation(self.op_name, operand)
       approx_result = self.approx_operation(operand)
-      reg2_error[0] = reg2_error[0] + abs((approx_result - exact_result) / exact_result) # MRE
+      reg2_error[0] = reg2_error[0] + pow((approx_result - exact_result) , 2) # MSE
       reg2_error[1] = reg2_error[1] + abs(approx_result - exact_result) # MAE
       N = N + 1
     if (N == 0):
@@ -194,7 +197,7 @@ class pwl_approx:
     for operand in np.arange(self.breakpoint2+resolution, self.breakpoint3, resolution):
       exact_result = exact_operation(self.op_name, operand)
       approx_result = self.approx_operation(operand)
-      reg3_error[0] = reg3_error[0] + abs((approx_result - exact_result) / exact_result) # MRE
+      reg3_error[0] = reg3_error[0] + pow((approx_result - exact_result) , 2) # MSE
       reg3_error[1] = reg3_error[1] + abs(approx_result - exact_result) # MAE
       N = N + 1
     if (N == 0):
@@ -210,7 +213,7 @@ class pwl_approx:
     for operand in np.arange(self.breakpoint3+resolution, self.endpoint, resolution):
       exact_result = exact_operation(self.op_name, operand)
       approx_result = self.approx_operation(operand)
-      reg4_error[0] = reg4_error[0] + abs((approx_result - exact_result) / exact_result) # MRE
+      reg4_error[0] = reg4_error[0] + pow((approx_result - exact_result) , 2) # MSE
       reg4_error[1] = reg4_error[1] + abs(approx_result - exact_result) # MAE
       N = N + 1
     if (N == 0):
@@ -220,10 +223,10 @@ class pwl_approx:
       reg4_error[0] = reg4_error[0] / N
       reg4_error[1] = reg4_error[1] / N
 
-    total_mre = (reg1_error[0] + reg2_error[0] + reg3_error[0] + reg4_error[0])/4
+    total_mse = (reg1_error[0] + reg2_error[0] + reg3_error[0] + reg4_error[0])/4
     total_mae = (reg1_error[1] + reg2_error[1] + reg3_error[1] + reg4_error[1])/4
 
-    return [reg1_error, reg2_error, reg3_error, reg4_error, total_mre, total_mae]
+    return [reg1_error, reg2_error, reg3_error, reg4_error, total_mse, total_mae]
 
 
 # --------------------------------------------------- #

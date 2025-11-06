@@ -25,22 +25,23 @@ def draw_functions():
     for jj in range(len(x)):
       func.append(PWL_Approximation.exact_operation('der_tanh', x[jj])) 
     
-    fig, ax = plt.subplots(figsize=(7, 4))
+    fig, ax = plt.subplots(figsize=(6, 5))
     ax.axvline(color="grey")
     #ax.axline((0, 0.5), slope=0.25, color="black", linestyle=(0, (5, 5)))
     ax.plot(x, func, linewidth=2, label=r"$f(x)' = \frac{d}{dx} tanh(x)$")
-    ax.set_xlabel('x', fontsize=14, fontweight='bold', fontname='Arial')
-    ax.set_ylabel(r"$f(x)'$", fontsize=12, fontweight='bold', fontname='Arial')
+    ax.set_xlabel('x', fontsize=15, fontweight='bold', fontname='Arial')
+    ax.set_ylabel(r"$f(x)'$", fontsize=15, fontweight='bold', fontname='Arial')
     ax.set_xlim(xlim_min, xlim_max)
     ax.set_ylim(0, 1)
+    ax.tick_params(axis='both', labelsize=11)
     ax.grid()
     
     # sigmoid
     func = []
     for jj in range(len(x)):
       func.append(PWL_Approximation.exact_operation('der_sigmoid', x[jj])) 
-    ax.plot(x, func, 'r', linewidth=2.5, label=r"$f(x)' = \frac{d}{dx} sigmoid(x)$")
-    ax.legend(fontsize=12)
+    ax.plot(x, func, 'r', linewidth=2.5, label=r"$f(x)'=\frac{d}{dx}\sigma$(x)")
+    ax.legend(fontsize=13)
 
     # Drawing second derivative functions
     xlim_min = 0
@@ -52,18 +53,19 @@ def draw_functions():
     
     min_y = np.min(func)
     min_x = x[np.argmin(func)]
-    fig, ax = plt.subplots(figsize=(7, 4))
+    fig, ax = plt.subplots(figsize=(6, 5))
     ax.axvline(color="grey")
     #ax.axline((0, 0.5), slope=0.25, color="black", linestyle=(0, (5, 5)))
     ax.plot(x, func, linewidth=2, label=r"$f(x){''} = \frac{d^2}{dx^2} tanh(x)$")
-    ax.set_xlabel('x', fontsize=14, fontweight='bold', fontname='Arial')
-    ax.set_ylabel(r"$f(x){''} $", fontsize=12, fontweight='bold', fontname='Arial')
+    ax.set_xlabel('x', fontsize=15, fontweight='bold', fontname='Arial')
+    ax.set_ylabel(r"$f(x){''} $", fontsize=15, fontweight='bold', fontname='Arial')
     ax.set_xlim(xlim_min, xlim_max)
     ax.set_ylim(-0.8, 0)
+    ax.tick_params(axis='both', labelsize=11)
     plt.annotate(f'Min: ({min_x:.2f}, {min_y:.2f})',
                  xy=(min_x, min_y),
                  xytext=(min_x + 0.6, min_y + 0.01), # Adjust text position
-                 arrowprops=dict(facecolor='navy', shrink=0.05, alpha=0.4))
+                 arrowprops=dict(facecolor='navy', shrink=0.05, alpha=0.4), fontsize=13)
     ax.grid()
     
     # sigmoid
@@ -76,11 +78,11 @@ def draw_functions():
     plt.annotate(f'Min: ({min_x:.2f}, {min_y:.2f})',
                  xy=(min_x, min_y),
                  xytext=(min_x - 0.01, min_y - 0.1), # Adjust text position
-                 arrowprops=dict(facecolor='red', shrink=0.05, alpha=0.4))
+                 arrowprops=dict(facecolor='red', shrink=0.05, alpha=0.4), fontsize=13)
 
 
-    ax.plot(x, func, 'r', linewidth=2.5, label=r"$f(x){''} = \frac{d^2}{dx^2} sigmoid(x)$")
-    ax.legend(fontsize=12)
+    ax.plot(x, func, 'r', linewidth=2.5, label=r"$f(x){''} = \frac{d^2}{dx^2}\sigma$(x)")
+    ax.legend(fontsize=14)
 
     plt.show()
     
@@ -88,7 +90,7 @@ def draw_functions():
 # find optimal endpoint
 def endpoint_analysis(op_name, min_nbits, max_nbits, min_endpoint, max_endpoint, input_range):
   mae_array = [[] for x in range(min_nbits,max_nbits+1)]
-  mre_array = [[] for x in range(min_nbits,max_nbits+1)]
+  mse_array = [[] for x in range(min_nbits,max_nbits+1)]
   best_endpoints= []
   print('\r', 'MAE ARRAY:  ', mae_array)
   for nbits in range(min_nbits, max_nbits+1):
@@ -99,10 +101,10 @@ def endpoint_analysis(op_name, min_nbits, max_nbits, min_endpoint, max_endpoint,
       endpoint = int(endpoint_temp*10)/10
       pwl_obj.set_breakpoints(0, -1, 0, endpoint, endpoint)
       pwl_obj.create_luts()
-      [mre, mae] = pwl_obj.error_analysis(input_range, False)
-      print('----', '  end_point:', endpoint,   '     MRE: ', mre,   '  MAE: ', mae, '\r\r')
+      [mse, mae] = pwl_obj.error_analysis(input_range, False)
+      print('----', '  end_point:', endpoint,   '     MSE: ', mse,   '  MAE: ', mae, '\r\r')
       mae_array[nbits-3].append(mae) 
-      mre_array[nbits-3].append(mre) 
+      mse_array[nbits-3].append(mse) 
     
     min_mae = min(mae_array[nbits-3])
     #print('               ', min_mae, mae_array[nbits-3].index(min_mae))
@@ -112,7 +114,7 @@ def endpoint_analysis(op_name, min_nbits, max_nbits, min_endpoint, max_endpoint,
     del pwl_obj
 
   #print('\r', 'MAE ARRAY:  ', mae_array)
-  #print('\r', 'MRE ARRAY:  ', mre_array)
+  #print('\r', 'MSE ARRAY:  ', mse_array)
   
   fig_mae, ax_mae = plt.subplots()
   ax_mae.axvline(color="grey")
@@ -128,17 +130,17 @@ def endpoint_analysis(op_name, min_nbits, max_nbits, min_endpoint, max_endpoint,
   plt.grid(True)
   plt.show()
 
-  fig_mre, ax_mre = plt.subplots()
-  ax_mre.axvline(color="grey")
-  ax_mre.plot(endpoint_list, mre_array[0], linewidth=2, label="num_bits=3")
-  ax_mre.plot(endpoint_list, mre_array[1], linewidth=2, label="num_bits=4")
-  ax_mre.plot(endpoint_list, mre_array[2], linewidth=2, label="num_bits=5")
-  ax_mre.plot(endpoint_list, mre_array[3], linewidth=2, label="num_bits=6")
-  ax_mre.plot(endpoint_list, mre_array[4], linewidth=2, label="num_bits=7")
-  ax_mre.plot(endpoint_list, mre_array[5], linewidth=2, label="num_bits=8")
-  ax_mre.set(xlim=(2, 10), xlabel="Endpoint")
-  ax_mre.set(ylim=(0, 1), ylabel="Mean Relative Error")#"Mean Absolute Error (x1000)")
-  ax_mre.legend(fontsize=14)
+  fig_mse, ax_mse = plt.subplots()
+  ax_mse.axvline(color="grey")
+  ax_mse.plot(endpoint_list, mse_array[0], linewidth=2, label="num_bits=3")
+  ax_mse.plot(endpoint_list, mse_array[1], linewidth=2, label="num_bits=4")
+  ax_mse.plot(endpoint_list, mse_array[2], linewidth=2, label="num_bits=5")
+  ax_mse.plot(endpoint_list, mse_array[3], linewidth=2, label="num_bits=6")
+  ax_mse.plot(endpoint_list, mse_array[4], linewidth=2, label="num_bits=7")
+  ax_mse.plot(endpoint_list, mse_array[5], linewidth=2, label="num_bits=8")
+  ax_mse.set(xlim=(2, 10), xlabel="Endpoint")
+  ax_mse.set(ylim=(0, 1), ylabel="Mean Relative Error")#"Mean Absolute Error (x1000)")
+  ax_mse.legend(fontsize=14)
   plt.grid(True)
   plt.show()
 
@@ -153,48 +155,47 @@ def optimize_breakpoints(op_name, addr_nbits, startpoint, endpoint, input_range)
   pwl_obj = pwl_approx(op_name, 1, addr_nbits, 0, 0)
   pwl_obj.set_breakpoints(startpoint, -1, 0, endpoint, endpoint)
   pwl_obj.create_luts()
-  [mre, mae] = pwl_obj.error_analysis([0,10], False)
-  print('\n----1', '     MRE: ', mre,   '  MAE: ', mae, '\r\r')
+  [mse, mae] = pwl_obj.error_analysis([0,10], False)
+  print('\n----1', '     MSE: ', mse,   '  MAE: ', mae, '\r\r')
   #print('----1', pwl_obj.lut2)
   op=0.1
   del pwl_obj
   
   mae_array=[]
-  mre_array=[]
+  mse_array=[]
   pwl_obj = pwl_approx(op_name, addr_nbits-1, addr_nbits-1, 0, 0)
   step = (endpoint - startpoint) / (pow(2,addr_nbits)-1)
   bp1_list=list(np.arange(startpoint, endpoint, 0.2))
   for bp1 in bp1_list:
     pwl_obj.set_breakpoints(startpoint, bp1, bp1+step, endpoint, endpoint)
     pwl_obj.create_luts()
-    [mre, mae] = pwl_obj.error_analysis([0,10], False)
+    [mse, mae] = pwl_obj.error_analysis([0,10], False)
     mae_array.append(float(mae))
-    mre_array.append(float(mre))
-  #print('----2', '     MRE: ', mre,   '  MAE: ', mae, step*(pow(2,addr_nbits-1)-1),'\r\r')
+    mse_array.append(float(mse))
   print('bp1_list:  ', bp1_list, '\n\n')
   print('mae_array: ', mae_array, '\n\n')
-  print('mre_array: ', mre_array)
+  print('mse_array: ', mse_array)
 
   min_index = mae_array.index(min(mae_array))
   best_bp1 = bp1_list[min_index]+step/2
   print('best BP1 =', best_bp1, min_index)
   
   mae_array2=[]
-  mre_array2=[]
+  mse_array2=[]
   region2_len_list=list(np.arange(0, endpoint-startpoint, 0.02))
   for region2_len in region2_len_list:
     pwl_obj.set_breakpoints(startpoint, best_bp1-region2_len/2, best_bp1+region2_len/2, endpoint, endpoint)
     pwl_obj.create_luts()
-    [mre, mae] = pwl_obj.error_analysis([0,10], False)
+    [mse, mae] = pwl_obj.error_analysis([0,10], False)
     mae_array2.append(float(mae))
-    mre_array2.append(float(mre))
+    mse_array2.append(float(mse))
 
   print('region2_len_list:  ', region2_len_list, '\n\n')
   print('mae_array: ', mae_array2, '\n\n')
-  print('mre_array: ', mre_array2)
+  print('mse_array: ', mse_array2)
   print('BEST REG2 LEN:', region2_len_list[mae_array2.index(min(mae_array2))])
 
-  print('\n------ MIN MAE:  ', min(mae_array2),  '          MIN MRE: ', min(mre_array2))
+  print('\n------ MIN MAE:  ', min(mae_array2),  '          MIN MSE: ', min(mse_array2))
 
   return 0
   
@@ -215,12 +216,12 @@ def find_middle_bp(op_name, startpoint, endpoint):
   print('-------------------\n')
 
   '''
-  fig_mre, ax_mre = plt.subplots()
-  ax_mre.axvline(color="grey")
-  ax_mre.plot(operand_list, second_der_list, linewidth=2, label="num_bits=3")
-  ax_mre.set(xlim=(startpoint, 3), xlabel="Endpoint")
-  ax_mre.set(ylim=(-1, 0), ylabel="Mean Relative Error")#"Mean Absolute Error (x1000)")
-  ax_mre.legend(fontsize=14)
+  fig_mse, ax_mse = plt.subplots()
+  ax_mse.axvline(color="grey")
+  ax_mse.plot(operand_list, second_der_list, linewidth=2, label="num_bits=3")
+  ax_mse.set(xlim=(startpoint, 3), xlabel="Endpoint")
+  ax_mse.set(ylim=(-1, 0), ylabel="Mean Relative Error")#"Mean Absolute Error (x1000)")
+  ax_mse.legend(fontsize=14)
   plt.grid(True)
   plt.show()
   '''
@@ -228,7 +229,7 @@ def find_middle_bp(op_name, startpoint, endpoint):
 
 # --------------------------------------------------- #
 def error_select(error_result_vec, error_metric):
-  if error_metric == "MRE" or error_metric == "mre":
+  if error_metric == "MSE" or error_metric == "mse":
     return error_result_vec[0]
   elif error_metric == "MAE" or error_metric == "mae":
     return error_result_vec[1]
@@ -348,7 +349,7 @@ def optimize_reg2_gd(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, midd
 def optimize_BPs(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_bp, error_metric):
     
   epsilon = 0.01
-  learning_rate = 1000
+  learning_rate = 400
   start_value = PWL_Approximation.exact_operation(op_name, startpoint)
   end_value = PWL_Approximation.exact_operation(op_name, endpoint)
 
@@ -384,8 +385,8 @@ def optimize_BPs(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_b
 
 # --------------------------------------------------- #
 def error_plot_3d(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_bp, error_metric, reg2_len_range, reg4_len_range):
-  reg2_tick = 0.1
-  reg4_tick = 0.5
+  reg2_tick = 0.2
+  reg4_tick = 0.2
   print('******  reg2_len:', reg2_len_range, '   middle', middle_bp)
 
   reg2_option_list = list(np.arange(reg2_len_range[0], reg2_len_range[1], reg2_tick))
@@ -396,8 +397,10 @@ def error_plot_3d(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_
 
   mm=0
   error_array = []
+  y_axis_ticks = []
   for ii in reg4_option_list:
     temp_vec = []
+    y_axis_ticks.append(end_point-ii)
     for jj in reg2_option_list:
       obj = pwl_approx(op_name, reg1_nbits, reg3_nbits, start_value, end_value)
       obj.set_breakpoints(start_point, middle_bp-jj/2, middle_bp+jj/2, end_point-ii, end_point)
@@ -405,7 +408,7 @@ def error_plot_3d(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_
       error_result_vec = obj.error_analysis([startpoint, endpoint], False)
       error_d1 = error_select(error_result_vec, error_metric)
       del obj
-      temp_vec.append(error_d1)
+      temp_vec.append(error_d1*1000)
     error_array.append(temp_vec)
     mm=mm+1
 
@@ -432,9 +435,9 @@ def error_plot_3d(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_
   
   # Drawing surface plot
   error_array_np = np.array(error_array)
-  print('NNNNNNNNNNN MRE   ',error_array_np.min())
+  print('   MSE   ',error_array_np.min())
   
-  X, Y = np.meshgrid(reg2_option_list, reg4_option_list)
+  X, Y = np.meshgrid(reg2_option_list, y_axis_ticks)
   fig, ax = plt.subplots(subplot_kw={"projection": "3d"}, figsize=(6, 6))
 
   surf = ax.plot_surface(X, Y, error_array_np, cmap='viridis',
@@ -444,22 +447,29 @@ def error_plot_3d(op_name, reg1_nbits, reg3_nbits, startpoint, endpoint, middle_
   ax.view_init(elev=15, azim=30)
   ax.set_zlim(0, error_array_np.max())
   ax.zaxis.set_major_locator(LinearLocator(10))
-  ax.zaxis.set_major_formatter('{x:.04f}')
+  ax.zaxis.set_major_formatter('{x:.01f}')
 
   plt.title(f"Region1 Bitwidth: {reg1_nbits} , Region3 Bitwidth: {reg3_nbits}", pad=0)
   if error_metric == 'mae':
-    ax.set(zlabel='Mean Average Error')
-  elif error_metric == 'mre':
-    ax.set(zlabel='Mean Relative Error')
-  ax.set(ylabel='Region 4 Length')
-  ax.set(xlabel='Region 2 Length')
+    #ax.set(zlabel=r'MAE ($\times$10)')
+    ax.set_zlabel(r'MAE ($\times 10^{3}$)', fontsize=14)
+  elif error_metric == 'mse':
+    #ax.set(zlabel=r'MSE ($\times$10)')
+    ax.set_zlabel(r'MSE ($\times 10^{3}$)', fontsize=14)
+  #ax.set(ylabel='BP3')
+  ax.set_ylabel(r'BP3', fontsize=14)
+  #ax.set(xlabel=r'$W_{R2}$')
+  ax.set_xlabel(r'$W_{R2}$', fontsize=14)
+  ax.tick_params(axis='both', labelsize=12)
+  tick_positions = list(np.arange(reg2_len_range[0], reg2_len_range[1], reg2_tick))
+  ax.set_xticks(tick_positions)
   # Add a color bar which maps values to colors.
   #fig.colorbar(surf, shrink=0.5, aspect=5)
 
   plt.show()
 
 # --------------------------------------------------- # pwl_optimizer
-def pwl_optimizer(op_name, start_value, end_value, error_metric, target_error_value):
+def pwl_optimizer(op_name, start_value, end_value, end_point, error_metric, target_error_value):
   # ---- Uniform PWL test
   pwl_segment_id_width = 0    # number of segments in uniform PWL is 2^pwl_segment_id_width
   print('-----------\nStart uniform PWL test ...')
@@ -473,7 +483,7 @@ def pwl_optimizer(op_name, start_value, end_value, error_metric, target_error_va
     obj.set_breakpoints(start_point, bp1, bp2, end_point, end_point)
     obj.create_luts()
     [mse, mae] = obj.error_analysis([0,end_point], False)
-    print('  MRE: ', f"{mse:6f}",   '  MAE: ', f"{mae:6f}", '\r\r')
+    print('  MSE: ', mse,   '  MAE: ', f"{mae:9f}", '\r\r')
     if (error_metric == 'mae'):
       current_error = mae
     elif (error_metric == 'mse'):
@@ -521,10 +531,15 @@ def pwl_optimizer(op_name, start_value, end_value, error_metric, target_error_va
           'Optimal BP1: ', f"{opt_bp1:.6f}", '    Optimal BP2: ', f"{opt_bp2:.6f}", '    Optimal BP3: ', f"{opt_bp3:.6f}", '       ', error_metric, ' : ', f"{error_result:.6f}")
     current_error = error_result
 
+    obj = pwl_approx(op_name, reg1_nbits, reg3_nbits, start_value, end_value)
+    obj.set_breakpoints(start_point, opt_bp1, opt_bp2, opt_bp3, end_point)
+    obj.create_luts()
+    [mse, mae] = obj.error_analysis([0,end_point], False)
+    print('    **** Analysis again: ', ' BP1:', opt_bp1 , ' BP2:', opt_bp2 , ' BP3:', opt_bp3   , ' MAE: ', mae, 'MSE: ', mse)
     obj2 = pwl_approx(op_name, reg1_nbits, reg3_nbits, start_value, end_value)
     obj2.set_breakpoints(start_point, opt_bp1, opt_bp2, opt_bp3, end_point)
     obj2.create_luts()
-    [reg1_error, reg2_error, reg3_error, reg4_error, total_mre, total_mae] = obj2.detailed_error_analysis()
+    [reg1_error, reg2_error, reg3_error, reg4_error, total_mse, total_mae] = obj2.detailed_error_analysis()
     print('      Reg1 MSE = '  , f"{reg1_error[0]:.6f}", ' Reg1 MAE = ', f"{reg1_error[1]:.6f}", 
           '\n      Reg2 MSE = ', f"{reg2_error[0]:.6f}", ' Reg2 MAE = ', f"{reg2_error[1]:.6f}", 
           '\n      Reg3 MSE = ', f"{reg3_error[0]:.6f}", ' Reg3 MAE = ', f"{reg3_error[1]:.6f}", 
@@ -543,6 +558,9 @@ print('---------------------\n')
 
 # ---- Global initializations
 print('---------------------\nStart global parameter initialization ...')
+run_pwl_optimizer = False
+run_draw_error_plot = True
+run_3d_error_plot = True
 op_name = 'der_tanh'
 error_metric='mae'
 start_point = 0
@@ -553,26 +571,48 @@ end_value = PWL_Approximation.exact_operation(op_name, end_point)
 print('Function: ', op_name, '\nstart_point: ', start_point, '\nend_point: ', end_point)
 print('---------------------\n')
 
+# ---- Temporary specific test
+t_bp1=1
+t_bp2=1.4
+t_bp3=8.8
+reg1_nbits=3
+reg3_nbits=4
+print(' **** Tttt  end_value: ', end_value)
+print(' **** Tttt  end_value2: ', PWL_Approximation.exact_operation(op_name, t_bp3))
+end_value = end_value
+obj = pwl_approx(op_name, reg1_nbits, reg3_nbits, start_value, end_value)
+obj.set_breakpoints(start_point, t_bp1, t_bp2, t_bp3, end_point)
+obj.create_luts()
+[mse, mae] = obj.error_analysis([0,end_point], False)
+print(' **** Temporary one-case analysis: ', ' BP1:', t_bp1 , ' BP2:', t_bp2 , ' BP3:', t_bp3   , ' MAE: ', mae, 'MSE: ', mse, '   end_value: ', end_value)
+
 # ---- PWL Optimizer
-print('---------------------\nOptimize uniform PWl and segmented PWL to reach ', error_metric, ' of ', target_error, ' ...')
-pwl_optimizer(op_name=op_name, start_value=start_value, end_value=end_value, error_metric=error_metric, target_error_value=target_error)
+if (run_pwl_optimizer==True):
+  print('---------------------\nOptimize uniform PWl and segmented PWL to reach ', error_metric, ' of ', target_error, ' ...')
+  pwl_optimizer(op_name=op_name, start_value=start_value, end_value=end_value, end_point=end_point, error_metric=error_metric, target_error_value=target_error)
 
 # ---------------------------------------
-breakpoint3 = 5
-obj2 = pwl_approx(op_name, 2, 3, start_value, end_value)
-obj2.set_breakpoints(start_point, middle_bp-0.2, middle_bp+0.2, breakpoint3, end_point)
-obj2.create_luts()
-[reg1_error, reg2_error, reg3_error, reg4_error, total_mre, total_mae] = obj2.detailed_error_analysis()
-print('Reg1 MSE = '  , f"{reg1_error[0]:.6f}", ' Reg1 MAE = ', f"{reg1_error[1]:.6f}", 
-      '\nReg2 MSE = ', f"{reg2_error[0]:.6f}", ' Reg2 MAE = ', f"{reg2_error[1]:.6f}", 
-      '\nReg3 MSE = ', f"{reg3_error[0]:.6f}", ' Reg3 MAE = ', f"{reg3_error[1]:.6f}", 
-      '\nReg4 MSE = ', f"{reg3_error[0]:.6f}", ' Reg4 MAE = ', f"{reg4_error[1]:.6f}" )
-[mre, mae] = obj2.error_analysis([0,end_point], True)
-print('\n----', '  BP1:', f"{obj2.breakpoint1:.3f}", '  BP2:', f"{obj2.breakpoint2:.3f}", '  BP3:', f"{obj2.breakpoint3:.3f}",  '  EP:',  end_point, ' ||    MRE: ', f"{mre:.6f}",   '  MAE: ', f"{mae:.6f}", '\r\r')
-#
+if (run_draw_error_plot==True):
+  bp1 = 0.5#0.6
+  bp2 = 1.5#1.0
+  bp3 = 8#4
+  reg1_nbits = 3#reg1_nbits
+  reg3_nbits = 3#reg3_nbits
+  obj2 = pwl_approx(op_name, reg1_nbits, reg3_nbits, start_value, end_value)
+  obj2.set_breakpoints(start_point, bp1, bp2, bp3, end_point)
+  obj2.create_luts()
+  [reg1_error, reg2_error, reg3_error, reg4_error, total_mse, total_mae] = obj2.detailed_error_analysis()
+  print('Reg1 MSE = '  , f"{reg1_error[0]:.6f}", ' Reg1 MAE = ', f"{reg1_error[1]:.6f}", 
+        '\nReg2 MSE = ', f"{reg2_error[0]:.6f}", ' Reg2 MAE = ', f"{reg2_error[1]:.6f}", 
+        '\nReg3 MSE = ', f"{reg3_error[0]:.6f}", ' Reg3 MAE = ', f"{reg3_error[1]:.6f}", 
+        '\nReg4 MSE = ', f"{reg3_error[0]:.6f}", ' Reg4 MAE = ', f"{reg4_error[1]:.6f}" )
+  [mse, mae] = obj2.error_analysis([0,end_point], True)
+  print('\n----', '  BP1:', f"{obj2.breakpoint1:.3f}", '  BP2:', f"{obj2.breakpoint2:.3f}", '  BP3:', f"{obj2.breakpoint3:.3f}",  '  EP:',  end_point, ' ||    MSE: ', f"{mse:.6f}",   '  MAE: ', f"{mae:.6f}", '\r\r')
+  #
 # ----
-#middle_bp=4
-#error_plot_3d(op_name='der_tanh', reg1_nbits=3, reg3_nbits=4, startpoint=start_point, endpoint=end_point, middle_bp=middle_bp, error_metric='mre', reg2_len_range = [0, middle_bp], reg4_len_range= [0,5.2])#end_point-middle_bp])
+if (run_3d_error_plot==True):
+  middle_bp=1.6
+  error_plot_3d(op_name=op_name, reg1_nbits=3, reg3_nbits=3, startpoint=start_point, endpoint=end_point, middle_bp=middle_bp, error_metric=error_metric, reg2_len_range = [0, middle_bp], reg4_len_range= [0,8])#end_point-middle_bp])
 
 print('------------------------------------------------')
 
