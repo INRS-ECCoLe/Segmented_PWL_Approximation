@@ -591,11 +591,11 @@ if (run_pwl_optimizer==True):
   print('---------------------\nOptimize uniform PWl and segmented PWL to reach ', error_metric, ' of ', target_error, ' ...')
   pwl_optimizer(op_name=op_name, start_value=start_value, end_value=end_value, end_point=end_point, error_metric=error_metric, target_error_value=target_error)
 
-# ---------------------------------------
+# ----- Error plot
 if (run_draw_error_plot==True):
-  bp1 = 0.5#0.6
-  bp2 = 1.5#1.0
-  bp3 = 8#4
+  bp1 = 0.6 # 0.5
+  bp2 = 1.0 # 1.5
+  bp3 = 4 # 8
   reg1_nbits = 3#reg1_nbits
   reg3_nbits = 3#reg3_nbits
   obj2 = pwl_approx(op_name, reg1_nbits, reg3_nbits, start_value, end_value)
@@ -608,8 +608,8 @@ if (run_draw_error_plot==True):
         '\nReg4 MSE = ', f"{reg3_error[0]:.6f}", ' Reg4 MAE = ', f"{reg4_error[1]:.6f}" )
   [mse, mae] = obj2.error_analysis([0,end_point], True)
   print('\n----', '  BP1:', f"{obj2.breakpoint1:.3f}", '  BP2:', f"{obj2.breakpoint2:.3f}", '  BP3:', f"{obj2.breakpoint3:.3f}",  '  EP:',  end_point, ' ||    MSE: ', f"{mse:.6f}",   '  MAE: ', f"{mae:.6f}", '\r\r')
-  #
-# ----
+
+# ------ 3D Plot
 if (run_3d_error_plot==True):
   middle_bp=1.6
   error_plot_3d(op_name=op_name, reg1_nbits=3, reg3_nbits=3, startpoint=start_point, endpoint=end_point, middle_bp=middle_bp, error_metric=error_metric, reg2_len_range = [0, middle_bp], reg4_len_range= [0,8])#end_point-middle_bp])

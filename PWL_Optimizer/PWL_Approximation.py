@@ -120,8 +120,8 @@ class pwl_approx:
       ax.axvline(color="grey")
       ax.plot(ind, error_array, linewidth=2, label="Absolute Error")
       if plot_with_value_curves == True:
-        ax.plot(ind, exact_result, 'g', linewidth=2.5, label="Exact $tanh(x)$")
-        ax.plot(ind, approx_result, 'red', linewidth=1.5, linestyle='dashed', label="Approximate $tanh(x)$")
+        ax.plot(ind, exact_result, 'g', linewidth=2.5, label="Exact $tanh'(x)$")
+        ax.plot(ind, approx_result, 'red', linewidth=1.5, linestyle='dashed', label="Approximate $tanh'(x)$")
         ylimit = max(exact_result)
       else:
         ylimit = 0.05
