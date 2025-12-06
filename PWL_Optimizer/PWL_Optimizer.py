@@ -6,6 +6,7 @@ import PWL_Approximation
 from matplotlib import cm
 from matplotlib.ticker import LinearLocator
 import pandas as pd
+import matplotlib
 import csv
 
 
@@ -555,6 +556,8 @@ def pwl_optimizer(op_name, start_value, end_value, end_point, error_metric, targ
 print('---------------------\n Start running draw_functions to draw first and second derivatives plots ...')
 draw_functions()
 print('---------------------\n')
+print(np.__version__)
+print(csv.__version__)
 
 # ---- Global initializations
 print('---------------------\nStart global parameter initialization ...')
@@ -577,8 +580,8 @@ t_bp2=1.4
 t_bp3=8.8
 reg1_nbits=3
 reg3_nbits=4
-print(' **** Tttt  end_value: ', end_value)
-print(' **** Tttt  end_value2: ', PWL_Approximation.exact_operation(op_name, t_bp3))
+print(' **** Temporary test:  end_value: ', end_value)
+print(' **** Temporary test: ', PWL_Approximation.exact_operation(op_name, t_bp3))
 end_value = end_value
 obj = pwl_approx(op_name, reg1_nbits, reg3_nbits, start_value, end_value)
 obj.set_breakpoints(start_point, t_bp1, t_bp2, t_bp3, end_point)
