@@ -8,4 +8,3 @@ Python 3.13
 numpy 2.3.1
 matplotlib 3.10
 csv 1.0
-Vivado 2024.02
